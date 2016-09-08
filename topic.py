@@ -55,5 +55,27 @@ class topic:
                 n=self.cursor.execute(insert_stmt, data)
                 print n
 
-        self.db.close()
+    def getTopicsByXHR(self, start, offset):
+
+        url = "https://www.zhihu.com/people/jesseo722/topics"
+        data = {"start": start, "offset": offset}
+        page = self.session.get(url).content
+
+        pattern = r'name="_xsrf" value="(.*?)"'
+        _xsrf = re.findall(pattern, page)
+        xToken = _xsrf[0]
+        print xToken
+        self.headers["X-Xsrftoken"] = xToken
+        self.headers["X-Requested-With"] = "XMLHttpRequest"
+
+        #page返回的事json格式的
+        page = self.session.post(url, data).content
+        print page
+        #注意里面的特殊字符的转义
+        pattern = r'<strong>(.*?)<\\/strong>'
+        topics = re.findall(pattern, page)
+
+        for topic in topics:
+            print topic
+
 
