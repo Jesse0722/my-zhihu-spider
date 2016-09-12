@@ -1,17 +1,4 @@
 # -*- coding: utf-8 -*-
-'''
-Required
-- requests (必须)
-- pillow (可选)
-Info
-- author : "xchaoinfo"
-- email  : "xchaoinfo@qq.com"
-- date   : "2016.2.4"
-Update
-- name   : "wangmengcn"
-- email  : "eclipse_sv@163.com"
-- date   : "2016.4.21"
-'''
 
 import requests
 
@@ -24,7 +11,7 @@ import MySQLdb
 from bs4 import BeautifulSoup
 import topic
 import question
-
+import answer
 class util:
 
     def __init__(self):
@@ -180,21 +167,36 @@ if __name__=='__main__':
         secret = input("请输入你的密码\n>  ")
         obj.login(secret, account)
 
-    #获取token
+    begin=int(time.time())
+    print u"正在抓取个人您知乎数据...."
+    #获取个人主页token
     token=obj.getToken()
+    print u"获取个人主页token：",token
+
+
     obj_topic = topic.topic(obj.session)
     obj_question=question.question(obj.session)
-    print(token)
+    obj_answer=answer.answer(obj.session)
+    obj_answer.getAnswerByQuestionId('27346629')
     # 获取topics
+    print u"-------------正在获取关注话题---------------"
     topics=obj_topic.getTopics(token)
-    print(topics)
+    for topic in topics:
+        print u'您关注了话题：',topic[1]
+
     #话题入库
+    print u"-------------正在从数据库中更新关注话题---------------"
     obj_topic.updateTopics(topics)
     #问题入库
+    print u"-------------正在抓取您关注话题的精华问题---------------"
     for topic in topics:
+        print u"----当前话题：",topic[1],"-----"
         obj_question.updateQuestionsByTopicId(topic[0],1)
 
     obj.db.close()
-
+    obj_question.db.close()
+    obj_topic.db.close()
+    end=int(time.time())
+    print("Spend time :"+str(end-begin))
 
 
