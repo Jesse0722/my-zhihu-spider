@@ -12,6 +12,9 @@ from bs4 import BeautifulSoup
 import topic
 import question
 import answer
+
+
+
 class util:
 
     def __init__(self):
@@ -167,6 +170,8 @@ if __name__=='__main__':
         secret = input("请输入你的密码\n>  ")
         obj.login(secret, account)
 
+
+
     begin=int(time.time())
     print u"正在抓取个人您知乎数据...."
     #获取个人主页token
@@ -177,21 +182,59 @@ if __name__=='__main__':
     obj_topic = topic.topic(obj.session)
     obj_question=question.question(obj.session)
     obj_answer=answer.answer(obj.session)
-    obj_answer.getAnswerByQuestionId('27346629')
+
+
+    # topic_id = '19551432'
+    # questions=obj_question.getQuestionsByXHR(topic_id,'hot',0,3200.29677322)
+    # for question in questions:
+    #     print question[1]
+    #questions = obj_question.getQuestionsByTopicId('19551432', 'hot')
+    # topic_id='19551432'
+    #
+    # questions = obj_question.getQuestionsByTopicId(topic_id)
+    #
+    # # 创建话题文件夹（需要查表）
+    # obj.cursor.execute("SELECT NAME FROM TOPIC WHERE LINK_ID = %s", int(topic_id))
+    # result = obj.cursor.fetchone()
+    # topic_name = result[0].encode('utf-8') #编译成中文
+    # desPath = 'E:\\zhihu' + '\\' + topic_name.decode('utf-8')
+    # if not os.path.exists(desPath):
+    #     os.makedirs(desPath)
+    #
+    # #保存的excel写入文件夹
+    # obj_question.write2Excel(questions,desPath)
+
+    #obj_answer.getAnswerByQuestionId('27346629')
     # 获取topics
     print u"-------------正在获取关注话题---------------"
     topics=obj_topic.getTopics(token)
-    for topic in topics:
-        print u'您关注了话题：',topic[1]
 
     #话题入库
     print u"-------------正在从数据库中更新关注话题---------------"
     obj_topic.updateTopics(topics)
-    #问题入库
+
+    #获取热门问题写入excel
     print u"-------------正在抓取您关注话题的精华问题---------------"
     for topic in topics:
-        print u"----当前话题：",topic[1],"-----"
-        obj_question.updateQuestionsByTopicId(topic[0],1)
+        print u'您关注了话题：', topic[1]
+        questions={}
+        questions_hot = obj_question.getQuestionsByTopicId(topic[0],'hot')
+        questions_newest = obj_question.getQuestionsByTopicId(topic[0], 'newest')
+        questions['hot']=questions_hot
+        questions['newest']=questions_newest
+        # 创建话题文件夹（需要查表）
+        obj.cursor.execute("SELECT NAME FROM TOPIC WHERE LINK_ID = %s", int(topic[0]))
+        result = obj.cursor.fetchone()
+        topic_name = result[0].encode('utf-8')  # 编译成中文
+        desPath = 'E:\\zhihu' + '\\' + topic_name.decode('utf-8')
+        if not os.path.exists(desPath):
+            os.makedirs(desPath)
+        obj_question.write2Excel(questions, desPath)
+    # #问题入库
+    # print u"-------------正在抓取您关注话题的精华问题---------------"
+    # for topic in topics:
+    #     print u"----当前话题：",topic[1],"-----"
+    #     obj_question.updateQuestionsByTopicId(topic[0],1)
 
     obj.db.close()
     obj_question.db.close()

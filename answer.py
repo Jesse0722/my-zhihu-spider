@@ -34,10 +34,10 @@ class answer:
                'answer-date-link meta-item.*?编辑于 (.*?)</a>.*?z-icon-comment.*?"(.*?) 条评论"'
         temp = source.decode('utf-8')
         xx = u"([/u4e00-/u9fa5]+)"
-        pattern=re.compile(ur'zm-item-answer  zm-item-expanded.*?data-atoken="(.*?)".*?author-link-line.*?'
-                           'author-link.*?href="/people/(.*?)">(.*?)</a>.*?class="js-voteCount">(.*?)</span>'
-                           '.*?answer-date-link meta-item.*?编辑于 (.*?)</a>'
-                           '.*?z-icon-comment.*?"(.*?) 条评论"',re.S)
-        answers=re.findall(pattern,content)
+        # pattern=re.compile(ur'zm-item-answer  zm-item-expanded.*?data-atoken="(.*?)".*?author-link-line.*?'
+        #                    'author-link.*?href="/people/(.*?)">(.*?)</a>.*?class="js-voteCount">(.*?)</span>'
+        #                    '.*?answer-date-link meta-item.*?编辑于 (.*?)</a>'
+        #                    '.*?z-icon-comment.*?"(.*?) 条评论"',re.S)
+        # answers=re.findall(pattern,content)
 
-        print answers
+        # print answers

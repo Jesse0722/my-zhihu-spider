@@ -7,6 +7,7 @@ import ConfigParser
 import MySQLdb
 import time
 import util
+import os
 
 class topic:
     def __init__(self,session):
@@ -33,6 +34,10 @@ class topic:
         content = self.session.get(topics_url).content
         off_set=0
 
+        pattern_xtoken = r'name="_xsrf" value="(.*?)"'
+        _xsrf = re.findall(pattern_xtoken, content)
+        xToken = _xsrf[0]
+
         pattern = re.compile(
             '<div.*?zm-profile-section-main">.*?<a.*?</a>.*?<a.*?href="/topic/(.*?)".*?<strong>(.*?)</strong>',
             re.S)
@@ -43,7 +48,7 @@ class topic:
         if len(topics)==20:
             while True:
                 off_set=off_set+20
-                topics_XHR = self.getTopicsByXHR(topics_url, 0, off_set)
+                topics_XHR = self.getTopicsByXHR(topics_url,xToken, 0, off_set)
                 #合并到topic
                 topics.extend(topics_XHR)
                 #如果返回的topic数量小于20说明不用再请求，终止
@@ -77,16 +82,16 @@ class topic:
        每次返回20条数据
        不足20条说明已经到最后一组
        '''
-    def getTopicsByXHR(self, topic_url,start, offset):
+    def getTopicsByXHR(self, topic_url,xToken,start, offset):
 
         #url = "https://www.zhihu.com/people/jesseo722/topics"
         data = {"start": start, "offset": offset}
-        page = self.session.get(topic_url).content
+        # page = self.session.get(topic_url).content
 
         #获取请求参数X-Xsrftoken
-        pattern = r'name="_xsrf" value="(.*?)"'
-        _xsrf = re.findall(pattern, page)
-        xToken = _xsrf[0]
+        # pattern = r'name="_xsrf" value="(.*?)"'
+        # _xsrf = re.findall(pattern, page)
+        # xToken = _xsrf[0]
         #print xToken
         self.session.headers["X-Xsrftoken"] = xToken
         self.session.headers["X-Requested-With"] = "XMLHttpRequest"
