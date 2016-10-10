@@ -14,8 +14,18 @@ from xlwt import *
 
 class question:
 
-    def __init__(self,session):
-        self.session = session
+    def __init__(self):
+
+
+        self.agent = 'Mozilla/5.0 (Windows NT 5.1; rv:33.0) Gecko/20100101 Firefox/33.0'
+        self.headers = {
+            "Host": "www.zhihu.com",
+            "Referer": "https://www.zhihu.com",
+            'User-Agent': self.agent
+        }
+
+        self.session = requests.session()
+        self.session.headers = self.headers
 
         cf = ConfigParser.ConfigParser()
         cf.read("config.ini")
@@ -37,9 +47,13 @@ class question:
     topic_id默认为‘hot’，或者为‘newest’
     '''
     def getQuestionsByTopicId(self,topic_id,style):
+        if style=='hot':
+            off_set = 3262.04139185
+        else:
+            off_set=time.time()
 
         url = "https://www.zhihu.com/topic/" + topic_id +"/"+style
-        content = self.session.get(url,timeout=4).content
+        content = self.session.get(url,timeout=5).content
         #url_newest= "https://www.zhihu.com/topic/" + topic_id + "/newest"
         # content_hot=self.session.get(url_hot).content
         # content_newest=self.session.get(url_newest).content
@@ -53,22 +67,28 @@ class question:
             '.*?class="zm-item-vote">.*?<a .*?zm-item-vote-count.*?>(.*?)</a>', re.S)
 
         questions = re.findall(pattern, content)
-
+        #print questions
         #获取——xsrf
         # 获取请求参数X-Xsrftoken
         pattern = r'name="_xsrf" value="(.*?)"'
         _xsrf = re.findall(pattern, content)
         xToken = _xsrf[0]
         # 当get得到topic数量为20时，需要异步请求，加载更多数据
-        off_set=3203.42394416
+
         while True:
             questions_XHR = self.getQuestionsByXHR(topic_id,xToken,style,0,off_set)
+            #print len(questions_XHR),questions_XHR
             # 合并到topic
-            questions.extend(questions_XHR)
+            if len(questions_XHR)!=0:
+                questions.extend(questions_XHR)
+                #print len(questions)
+
             off_set=off_set-0.5
 
-            if len(questions_XHR) <= 0:
+            count=len(questions)
+            if count >= 20:
                 break
+            time.sleep(1)
 
         return questions
 
@@ -183,7 +203,7 @@ class question:
         self.session.headers["X-Requested-With"] = "XMLHttpRequest"
 
         # page返回的事json格式的
-        page = self.session.post(url, data,timeout=4).content
+        page = self.session.post(url, data,10).content
         #print page
 
         pattern = re.compile(

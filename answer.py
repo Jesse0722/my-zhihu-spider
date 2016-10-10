@@ -2,11 +2,19 @@
 
 import ConfigParser
 import MySQLdb
-import re
+import requests
 class answer:
 
-    def __init__(self,session):
-        self.session = session
+    def __init__(self):
+        self.agent = 'Mozilla/5.0 (Windows NT 5.1; rv:33.0) Gecko/20100101 Firefox/33.0'
+        self.headers = {
+            "Host": "www.zhihu.com",
+            "Referer": "https://www.zhihu.com",
+            'User-Agent': self.agent
+        }
+
+        self.session = requests.session()
+        self.session.headers = self.headers
 
         cf = ConfigParser.ConfigParser()
         cf.read("config.ini")

@@ -14,6 +14,37 @@ import question
 import answer
 
 
+def get_content(toUrl,count):
+    """ Return the content of given url
+
+           Args:
+               toUrl: aim url
+               count: index of this connect
+
+           Return:
+               content if success
+               'Fail' if fail
+       """
+    agent = 'Mozilla/5.0 (Windows NT 5.1; rv:33.0) Gecko/20100101 Firefox/33.0'
+    headers = {
+        "Host": "www.zhihu.com",
+        "Referer": "https://www.zhihu.com",
+        'User-Agent': agent
+    }
+    session = requests.session()
+    session.headers = headers
+    session.cookies = cookielib.LWPCookieJar(filename='cookies')
+
+    try:
+        content=session.get(toUrl,timeout=15).content
+
+    except Exception,e:
+        if count % 1==0:
+            print str(count) + ", Error: " + str(e) + " URL: " + toUrl
+        return "FAIL"
+
+    return content
+
 
 class util:
 
@@ -54,7 +85,6 @@ class util:
 
 
 
-
     def get_xsrf(self):
         index_url='http://www.zhihu.com'
         index_page=self.session.get(index_url)
@@ -73,7 +103,7 @@ class util:
             f.close()
 
         print(u'请到 %s 目录找到captcha.jpg手动输入' %os.path.abspath('captcha.jpg'))
-        captcha=input(u'请输入验证码\n>')
+        captcha=raw_input(u'请输入验证码\n>')
         return captcha
 
     def isLogin(self):
@@ -166,8 +196,8 @@ if __name__=='__main__':
     if obj.isLogin():
         print("您已经登陆")
     else:
-        account = input('请输入你的用户名\n>  ')
-        secret = input("请输入你的密码\n>  ")
+        account = raw_input('请输入你的用户名\n>  ')
+        secret = raw_input("请输入你的密码\n>  ")
         obj.login(secret, account)
 
 
@@ -180,8 +210,8 @@ if __name__=='__main__':
 
 
     obj_topic = topic.topic(obj.session)
-    obj_question=question.question(obj.session)
-    obj_answer=answer.answer(obj.session)
+    obj_question=question.question()
+    obj_answer=answer.answer()
 
 
     # topic_id = '19551432'
@@ -208,15 +238,18 @@ if __name__=='__main__':
     # 获取topics
     print u"-------------正在获取关注话题---------------"
     topics=obj_topic.getTopics(token)
-
+    for topic in topics:
+        print topic[1]
+    print u"-------------获取关注话题结束---------------"
     #话题入库
     print u"-------------正在从数据库中更新关注话题---------------"
     obj_topic.updateTopics(topics)
-
+    print u"-------------更新关注话题结束---------------"
     #获取热门问题写入excel
     print u"-------------正在抓取您关注话题的精华问题---------------"
     for topic in topics:
         print u'您关注了话题：', topic[1]
+        begin = int(time.time())
         questions={}
         questions_hot = obj_question.getQuestionsByTopicId(topic[0],'hot')
         questions_newest = obj_question.getQuestionsByTopicId(topic[0], 'newest')
@@ -229,7 +262,11 @@ if __name__=='__main__':
         desPath = 'E:\\zhihu' + '\\' + topic_name.decode('utf-8')
         if not os.path.exists(desPath):
             os.makedirs(desPath)
+
+        print questions
         obj_question.write2Excel(questions, desPath)
+        end = int(time.time())
+        print u"使用时间："+str(end-begin)
     # #问题入库
     # print u"-------------正在抓取您关注话题的精华问题---------------"
     # for topic in topics:
